@@ -3,6 +3,7 @@ package io.charlag.kielet.data.source.net;
 import java.util.List;
 
 import io.charlag.kielet.data.Language;
+import io.charlag.kielet.data.source.net.response.LanguagesResponse;
 import io.charlag.kielet.data.source.net.response.TranslationResponse;
 import io.reactivex.Single;
 import retrofit2.http.GET;

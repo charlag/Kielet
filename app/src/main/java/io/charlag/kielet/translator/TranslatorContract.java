@@ -5,6 +5,7 @@ import android.support.v4.util.Pair;
 
 import java.util.List;
 
+import io.charlag.kielet.util.Empty;
 import io.reactivex.Observable;
 
 /**
@@ -25,7 +26,7 @@ interface TranslatorContract {
     interface View {
         @NonNull Observable<String> translationInput();
 
-        @NonNull Observable<Void> clearButtonPressed();
+        @NonNull Observable<Empty> clearButtonPressed();
 
         @NonNull Observable<Void> languagesSwapPressed();
 

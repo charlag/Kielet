@@ -1,22 +1,29 @@
 package io.charlag.kielet.translator;
 
+import android.database.DataSetObserver;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.AppCompatSpinner;
+import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 
 import com.jakewharton.rxbinding2.view.RxView;
 import com.jakewharton.rxbinding2.widget.RxTextView;
-import com.jakewharton.rxbinding2.widget.TextViewTextChangeEvent;
+
+import org.w3c.dom.Text;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.inject.Inject;
 
@@ -24,21 +31,9 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.charlag.kielet.App;
 import io.charlag.kielet.R;
-import io.charlag.kielet.data.source.DaggerTranslationsProviderComponent;
-import io.charlag.kielet.data.source.TranslationsProviderModule;
-import io.charlag.kielet.data.source.net.API;
-import io.charlag.kielet.data.source.TranslationsProvider;
-import io.charlag.kielet.data.source.TranslationsProviderImpl;
-import io.charlag.kielet.data.source.net.NetModule;
+import io.charlag.kielet.util.Empty;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.schedulers.Schedulers;
-import okhttp3.HttpUrl;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import retrofit2.Retrofit;
-import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
-import retrofit2.converter.moshi.MoshiConverterFactory;
 
 public final class TranslatorFragment extends Fragment implements TranslatorContract.View {
 
@@ -46,6 +41,7 @@ public final class TranslatorFragment extends Fragment implements TranslatorCont
 
     @Inject TranslatorContract.Presenter presenter;
 
+    @BindView(R.id.toolbar) Toolbar toolbar;
     @BindView(R.id.et_input) EditText inputField;
     @BindView(R.id.btn_clear) ImageButton clearButton;
     @BindView(R.id.result_field) TextView resultField;
@@ -81,6 +77,19 @@ public final class TranslatorFragment extends Fragment implements TranslatorCont
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(RxTextView.text(resultField));
 
+        AppCompatSpinner spinner = new AppCompatSpinner(getContext());
+        ArrayAdapter<LanguageViewModel> adapter =
+                new ArrayAdapter<>(getContext(), R.layout.view_language);
+
+        presenter.languageFromList()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(list -> {
+                    adapter.clear();
+                    adapter.addAll(list);
+                });
+        spinner.setAdapter(adapter);
+        toolbar.addView(spinner);
+
         return root;
     }
 
@@ -92,8 +101,8 @@ public final class TranslatorFragment extends Fragment implements TranslatorCont
 
     @NonNull
     @Override
-    public Observable<Void> clearButtonPressed() {
-        return RxView.clicks(clearButton).cast(Void.class);
+    public Observable<Empty> clearButtonPressed() {
+        return RxView.clicks(clearButton).map(Empty::fromAny).doOnNext(something -> Log.d("TAG", something.toString()));
     }
 
     @NonNull
@@ -129,5 +138,74 @@ public final class TranslatorFragment extends Fragment implements TranslatorCont
     public Observable<Integer> languageToPicked() {
         // TODO: implement
         return Observable.never();
+    }
+
+    static final class LanguagesAdapter implements SpinnerAdapter {
+
+        final List<LanguageViewModel> languages;
+
+        LanguagesAdapter(List<LanguageViewModel> languages) {
+            this.languages = languages;
+        }
+
+        @Override
+        public View getDropDownView(int position, View convertView, ViewGroup parent) {
+            FrameLayout view = (FrameLayout) convertView;
+            if (view == null) {
+                view = (FrameLayout) LayoutInflater.from(parent.getContext())
+                        .inflate(R.layout.view_language, parent, false);
+            }
+            TextView tv = (TextView) view.findViewById(R.id.tv_language_name);
+            tv.setText(languages.get(position).getName());
+            return view;
+        }
+
+        @Override
+        public void registerDataSetObserver(DataSetObserver observer) {
+        }
+
+        @Override
+        public void unregisterDataSetObserver(DataSetObserver observer) {
+        }
+
+        @Override
+        public int getCount() {
+            return languages.size();
+        }
+
+        @Override
+        public Object getItem(int position) {
+            return null;
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return position;
+        }
+
+        @Override
+        public boolean hasStableIds() {
+            return false;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            return getDropDownView(position, convertView, parent);
+        }
+
+        @Override
+        public int getItemViewType(int position) {
+            return 0;
+        }
+
+        @Override
+        public int getViewTypeCount() {
+            return 1;
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return languages.isEmpty();
+        }
     }
 }

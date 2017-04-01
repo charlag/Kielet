@@ -1,17 +1,20 @@
 package io.charlag.kielet.translator;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
 /**
  * Created by charlag on 01/04/2017.
  */
 
 final class TranslationViewModel {
-    private final String text;
+    @NonNull private final String text;
 
-    TranslationViewModel(String text) {
+    TranslationViewModel(@NonNull String text) {
         this.text = text;
     }
 
-    public String getText() {
+    public @NonNull String getText() {
         return text;
     }
 }

@@ -6,6 +6,7 @@ import javax.inject.Singleton;
 
 import dagger.Module;
 import dagger.Provides;
+import io.charlag.kielet.data.source.net.response.LanguagesAdapter;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
@@ -32,7 +33,9 @@ public class NetModule {
     @Provides
     @Singleton
     Moshi provideMoshi() {
-        return new Moshi.Builder().build();
+        return new Moshi.Builder()
+                .add(new LanguagesAdapter())
+                .build();
     }
 
     @Provides
