@@ -2,27 +2,26 @@ package io.charlag.kielet.translator;
 
 import android.support.annotation.NonNull;
 import android.support.v4.util.Pair;
-import android.util.Log;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
 import io.charlag.kielet.data.Language;
 import io.charlag.kielet.data.source.TranslationsProvider;
 import io.reactivex.Observable;
-import io.reactivex.functions.Function;
 
 /**
  * Created by charlag on 01/04/2017.
+ *
+ * UI for the Translator screen.
  */
 
-class TranslatorPresenterImpl implements TranslatorContract.Presenter {
+final class TranslatorPresenterImpl implements TranslatorContract.Presenter {
 
     private final TranslationsProvider translationsProvider;
     private final TranslatorContract.View view;
-    private final Observable<Language> fromLanguage;
+    private final Observable<Pair<Language, Language>> chosenLanguages;
+    private final Observable<Pair<Integer, Integer>> chosenLanguagesIndexes;
     private final Observable<List<Language>> languages;
 
     TranslatorPresenterImpl(TranslationsProvider translationsProvider,
@@ -36,17 +35,29 @@ class TranslatorPresenterImpl implements TranslatorContract.Presenter {
                 .share().replay(1).autoConnect();
 
         // TODO: add "detect language" option
-        fromLanguage = view.languageFromPicked()
-                .withLatestFrom(languages, (index, list) -> list.get(index));
+        chosenLanguagesIndexes = Observable
+                .combineLatest(view.languageFromPicked(), view.languageToPicked(), Pair::new)
+                .startWith(new Pair<>(0, 0))
+                .share()
+                .replay(1)
+                .autoConnect();
+        chosenLanguages = chosenLanguagesIndexes
+                .withLatestFrom(languages, (indexes, langs) ->
+                        new Pair<>(langs.get(indexes.first), langs.get(indexes.second)));
     }
 
     @NonNull
     @Override
     public Observable<TranslationViewModel> translations() {
-        Observable<TranslationViewModel> translations = view.translationInput()
-                .filter(text -> !text.isEmpty()) // TODO: change to picked languages
-                .flatMap(text -> translationsProvider.translate("ru", "en", text).toObservable())
-                .map(translation -> new TranslationViewModel(translation.getText().get(0)));
+        Observable<TranslationViewModel> translations =
+                Observable.combineLatest(view.translationInput(), chosenLanguages, Pair::new)
+                        .filter(pair -> !pair.first.isEmpty())
+                        .switchMap(pair ->
+                                translationsProvider.translate(pair.second.first.getCode(),
+                                        pair.second.second.getCode(),
+                                        pair.first)
+                                        .toObservable())
+                        .map(translation -> new TranslationViewModel(translation.getText().get(0)));
         Observable<TranslationViewModel> clearText = view.clearButtonPressed()
                 .map(v -> new TranslationViewModel("")); // cannot pass null through observable
         return Observable.merge(translations, clearText);
@@ -54,9 +65,8 @@ class TranslatorPresenterImpl implements TranslatorContract.Presenter {
 
     @NonNull
     @Override
-    public Observable<Pair<String, String>> chosenLanguages() {
-        // TODO: implement
-        return Observable.just(new Pair<>("Russian", "English")).cache();
+    public Observable<Pair<Integer, Integer>> chosenLanguages() {
+        return chosenLanguagesIndexes;
     }
 
     @NonNull

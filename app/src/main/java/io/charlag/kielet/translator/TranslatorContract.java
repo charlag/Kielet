@@ -10,13 +10,15 @@ import io.reactivex.Observable;
 
 /**
  * Created by charlag on 31/03/2017.
+ *
+ * Specifies contract between View and Presenter for Translator screen
  */
 
 interface TranslatorContract {
     interface Presenter {
         @NonNull Observable<TranslationViewModel> translations();
 
-        @NonNull Observable<Pair<String, String>> chosenLanguages();
+        @NonNull Observable<Pair<Integer, Integer>> chosenLanguages();
 
         @NonNull Observable<List<LanguageViewModel>> languageFromList();
 
@@ -29,10 +31,6 @@ interface TranslatorContract {
         @NonNull Observable<Empty> clearButtonPressed();
 
         @NonNull Observable<Void> languagesSwapPressed();
-
-        @NonNull Observable<Void> languageFromPickPressed();
-
-        @NonNull Observable<Void> languageToPickPressed();
 
         @NonNull Observable<Integer> languageFromPicked();
 

@@ -4,4 +4,6 @@
     android:id="@+id/tv_language_name"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:textColor="@color/colorPrimary"/>
+    android:textColor="@color/colorPrimary"
+    android:layout_margin="20dp"
+    android:padding="20dp"/>
