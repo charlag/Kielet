@@ -6,11 +6,9 @@
               tools:context="io.charlag.kielet.translator.TranslatorFragment"
               android:orientation="vertical">
 
-    <android.support.v7.widget.Toolbar
-        android:id="@+id/toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-    </android.support.v7.widget.Toolbar>
+    <include layout="@layout/view_translator_bar"
+        android:layout_height="40dp"
+        android:layout_width="match_parent"/>
 
     <FrameLayout
         android:layout_width="match_parent"

@@ -30,7 +30,7 @@ interface TranslatorContract {
 
         @NonNull Observable<Empty> clearButtonPressed();
 
-        @NonNull Observable<Void> languagesSwapPressed();
+        @NonNull Observable<Empty> languagesSwapPressed();
 
         @NonNull Observable<Integer> languageFromPicked();
 

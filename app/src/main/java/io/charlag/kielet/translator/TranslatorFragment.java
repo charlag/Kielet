@@ -3,8 +3,8 @@ package io.charlag.kielet.translator;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.AppCompatImageButton;
 import android.support.v7.widget.AppCompatSpinner;
-import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,7 +14,6 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.jakewharton.rxbinding2.view.RxView;
-import com.jakewharton.rxbinding2.widget.RxAdapterView;
 import com.jakewharton.rxbinding2.widget.RxTextView;
 
 import javax.inject.Inject;
@@ -24,6 +23,7 @@ import butterknife.ButterKnife;
 import io.charlag.kielet.App;
 import io.charlag.kielet.R;
 import io.charlag.kielet.util.Empty;
+import io.charlag.kielet.util.TouchSelectedEventsObservable;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 
@@ -33,12 +33,12 @@ public final class TranslatorFragment extends Fragment implements TranslatorCont
 
     @Inject TranslatorContract.Presenter presenter;
 
-    @BindView(R.id.toolbar) Toolbar toolbar;
     @BindView(R.id.et_input) EditText inputField;
     @BindView(R.id.btn_clear) ImageButton clearButton;
     @BindView(R.id.result_field) TextView resultField;
-    AppCompatSpinner spinnerFrom;
-    AppCompatSpinner spinnerTo;
+    @BindView(R.id.spinner_from) AppCompatSpinner spinnerFrom;
+    @BindView(R.id.spinner_to) AppCompatSpinner spinnerTo;
+    @BindView(R.id.btn_swap) AppCompatImageButton swapLanguagesButton;
 
     public TranslatorFragment() {
     }
@@ -59,18 +59,15 @@ public final class TranslatorFragment extends Fragment implements TranslatorCont
         final View root = inflater.inflate(R.layout.fragment_translator, container, false);
         ButterKnife.bind(this, root);
 
-        spinnerFrom = new AppCompatSpinner(getContext());
-        ArrayAdapter<LanguageViewModel> adapter =
-                new ArrayAdapter<>(getContext(), R.layout.view_language);
+        ArrayAdapter<LanguageViewModel> adapterFrom =
+                new ArrayAdapter<>(getContext(), R.layout.view_language, R.id.tv_language_name);
+        adapterFrom.setDropDownViewResource(R.layout.view_language_dropdown);
+        spinnerFrom.setAdapter(adapterFrom);
 
-        spinnerFrom.setAdapter(adapter);
-        toolbar.addView(spinnerFrom);
-
-        spinnerTo = new AppCompatSpinner(getContext());
         ArrayAdapter<LanguageViewModel> adapterTo =
-                new ArrayAdapter<>(getContext(), R.layout.view_language);
+                new ArrayAdapter<>(getContext(), R.layout.view_language, R.id.tv_language_name);
+        adapterFrom.setDropDownViewResource(R.layout.view_language_dropdown);
         spinnerTo.setAdapter(adapterTo);
-        toolbar.addView(spinnerTo);
 
         DaggerTranslatorComponent.builder()
                 .translatorPresenterModule(new TranslatorPresenterModule(this))
@@ -84,22 +81,28 @@ public final class TranslatorFragment extends Fragment implements TranslatorCont
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(RxTextView.text(resultField));
 
+        presenter.chosenLanguages()
+                .distinctUntilChanged()
+                .map(p -> p.first)
+                .subscribe(index -> {
+                    spinnerFrom.setSelection(index);
+                    spinnerFrom.setTag(index);
+                });
+
         presenter.languageFromList()
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(list -> {
-                    adapter.clear();
-                    adapter.addAll(list);
+                    adapterFrom.clear();
+                    adapterFrom.addAll(list);
                 });
 
         presenter.chosenLanguages()
                 .distinctUntilChanged()
-                .map(p -> p.first)
-                .subscribe(RxAdapterView.selection(spinnerFrom));
-
-        presenter.chosenLanguages()
-                .distinctUntilChanged()
                 .map(p -> p.second)
-                .subscribe(RxAdapterView.selection(spinnerTo));
+                .subscribe(index -> {
+                    spinnerTo.setSelection(index);
+                    spinnerTo.setTag(index);
+                });
 
         presenter.languageToList()
                 .observeOn(AndroidSchedulers.mainThread())
@@ -128,22 +131,21 @@ public final class TranslatorFragment extends Fragment implements TranslatorCont
 
     @NonNull
     @Override
-    public Observable<Void> languagesSwapPressed() {
-        // TODO: implement
-        return Observable.never();
+    public Observable<Empty> languagesSwapPressed() {
+        return RxView.clicks(swapLanguagesButton).map(Empty::fromAny);
     }
 
     @NonNull
     @Override
     public Observable<Integer> languageFromPicked() {
         // TODO: unsubscribe
-        return RxAdapterView.itemSelections(spinnerFrom).filter(index -> index > 0);
+        return new TouchSelectedEventsObservable(spinnerFrom);
     }
 
     @NonNull
     @Override
     public Observable<Integer> languageToPicked() {
         // TODO: unsubscribe
-        return RxAdapterView.itemSelections(spinnerTo).filter(index -> index > 0);
+        return new TouchSelectedEventsObservable(spinnerTo);
     }
 }
