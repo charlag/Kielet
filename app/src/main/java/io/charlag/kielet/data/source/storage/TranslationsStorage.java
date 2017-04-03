@@ -17,4 +17,6 @@ public interface TranslationsStorage {
     void unsaveTranslation(long id);
 
     Observable<List<Translation>> getTranslations();
+
+    Observable<List<Translation>> getFavorites();
 }

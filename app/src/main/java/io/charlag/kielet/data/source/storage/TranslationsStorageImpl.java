@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.support.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,7 +58,13 @@ class TranslationsStorageImpl implements TranslationsStorage {
 
     @Override
     public Observable<List<Translation>> getTranslations() {
-        return update.startWith(Empty.INSTANCE).flatMapSingle(v -> getNewTranslations());
+        return update.startWith(Empty.INSTANCE).flatMapSingle(v -> getNewTranslations(null));
+    }
+
+    @Override
+    public Observable<List<Translation>> getFavorites() {
+        String selection = TranslationEntry.COLUMN_NAME_IS_FAV + " = 1";
+        return update.startWith(Empty.INSTANCE).flatMapSingle(v -> getNewTranslations(selection));
     }
 
     private void updateTaskFavorite(long id, boolean isFavorite) {
@@ -72,7 +79,7 @@ class TranslationsStorageImpl implements TranslationsStorage {
         update.onNext(Empty.INSTANCE);
     }
 
-    Single<List<Translation>> getNewTranslations() {
+    Single<List<Translation>> getNewTranslations(@Nullable String selection) {
         return Single.fromCallable(() -> {
             String[] projection = {
                     TranslationEntry._ID,
@@ -85,8 +92,8 @@ class TranslationsStorageImpl implements TranslationsStorage {
             String orderBy = TranslationEntry._ID + " DESC";
 
             SQLiteDatabase db = dbHelper.getReadableDatabase();
-            Cursor c = db.query(TranslationEntry.TABLE_NAME, projection,
-                    null, null, null, null, orderBy);
+            Cursor c = db.query(TranslationEntry.TABLE_NAME, projection, selection,
+                    null, null, null, orderBy);
             List<Translation> result = new ArrayList<>();
 
             if (c != null && c.getCount() > 0) {
@@ -99,7 +106,7 @@ class TranslationsStorageImpl implements TranslationsStorage {
                     String original = c.getString(
                             c.getColumnIndexOrThrow(TranslationEntry.COLUMN_NAME_ORIGINAL));
                     String translationResult = c.getString(c.getColumnIndexOrThrow(
-                            TranslationEntry.COLUMN_NAME_FROM));
+                            TranslationEntry.COLUMN_NAME_RESULT));
                     boolean isFav = c.getInt(
                             c.getColumnIndexOrThrow(TranslationEntry.COLUMN_NAME_IS_FAV)) == 1;
                     Translation translation = new Translation(itemId, isFav, original,

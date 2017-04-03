@@ -9,10 +9,10 @@ import io.charlag.kielet.data.source.storage.TranslationsStorage;
  */
 
 @Module
-public class HistoryPresenterModule {
+class HistoryPresenterModule {
     private final HistoryContract.View view;
 
-    public HistoryPresenterModule(HistoryContract.View view) {
+    HistoryPresenterModule(HistoryContract.View view) {
         this.view = view;
     }
 

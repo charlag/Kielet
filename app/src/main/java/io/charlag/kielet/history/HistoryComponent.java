@@ -10,6 +10,6 @@ import io.charlag.kielet.annotation.FragmentScoped;
 
 @FragmentScoped
 @Component(dependencies = AppComponent.class, modules = HistoryPresenterModule.class)
-public interface HistoryComponent {
+interface HistoryComponent {
     void inject(HistoryFragment historyFragment);
 }

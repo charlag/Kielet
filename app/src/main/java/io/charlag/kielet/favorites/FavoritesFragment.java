@@ -1,4 +1,4 @@
-package io.charlag.kielet.history;
+package io.charlag.kielet.favorites;
 
 import javax.inject.Inject;
 
@@ -11,22 +11,20 @@ import io.charlag.kielet.common.TranslationsListPresenter;
  * Created by charlag on 03/04/2017.
  */
 
-public class HistoryFragment extends TranslationsFragment implements HistoryContract.View {
+public class FavoritesFragment extends TranslationsFragment implements FavoritesContract.View {
 
-    @Inject HistoryContract.Presenter presenter;
+    public static FavoritesFragment newInstance() { return new FavoritesFragment(); }
 
-    public HistoryFragment() {
+    public FavoritesFragment() {
     }
 
-    public static HistoryFragment newInstance() {
-        return new HistoryFragment();
-    }
+    @Inject FavoritesContract.Presenter presenter;
 
     @Override
     protected void inject() {
-        DaggerHistoryComponent.builder()
+        DaggerFavoritesComponent.builder()
                 .appComponent(((App) getActivity().getApplication()).getAppComponent())
-                .historyPresenterModule(new HistoryPresenterModule(this))
+                .favoritesPresenterModule(new FavoritesPresenterModule(this))
                 .build()
                 .inject(this);
     }
@@ -44,11 +42,5 @@ public class HistoryFragment extends TranslationsFragment implements HistoryCont
     @Override
     protected int getListId() {
         return R.id.list_translations;
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        presenter.unsubscribe();
     }
 }

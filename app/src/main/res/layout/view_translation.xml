@@ -37,8 +37,7 @@
             android:layout_gravity="center_vertical|start"
             android:layout_weight="1"
             android:text="something"
-            android:gravity="center_vertical"
-            android:textAllCaps="true"/>
+            android:gravity="center_vertical"/>
     </LinearLayout>
 
     <TextView
@@ -48,5 +47,6 @@
         android:layout_gravity="center_vertical|right"
         android:layout_margin="6dp"
         android:text="ru-ru"
-        android:textAlignment="center"/>
+        android:textAlignment="center"
+        android:textAllCaps="true"/>
 </LinearLayout>
