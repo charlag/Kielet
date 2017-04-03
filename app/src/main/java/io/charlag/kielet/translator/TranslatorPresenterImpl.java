@@ -56,7 +56,7 @@ final class TranslatorPresenterImpl implements TranslatorContract.Presenter {
         // TODO: add "detect language" option
         disposable.add(Observable
                 .combineLatest(view.languageFromPicked().startWith(0),
-                        view.languageToPicked().startWith(0),
+                        view.languageToPicked().startWith(1),
                         Pair::new)
                 .subscribe(chosenLanguagesIndexes::onNext)
         );

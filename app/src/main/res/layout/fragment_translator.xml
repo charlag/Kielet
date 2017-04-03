@@ -1,19 +1,21 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
               xmlns:tools="http://schemas.android.com/tools"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
-              xmlns:app="http://schemas.android.com/apk/res-auto"
-              tools:context="io.charlag.kielet.translator.TranslatorFragment"
-              android:orientation="vertical">
+              android:orientation="vertical"
+              tools:context="io.charlag.kielet.translator.TranslatorFragment">
 
-    <include layout="@layout/view_translator_bar"
-        android:layout_height="40dp"
-        android:layout_width="match_parent"/>
+    <include
+        layout="@layout/view_translator_bar"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"/>
 
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="10dp">
+
         <EditText
             android:id="@+id/et_input"
             android:layout_width="match_parent"
@@ -25,8 +27,9 @@
             android:layout_width="35dp"
             android:layout_height="35dp"
             android:layout_gravity="right|top"
+            android:background="?attr/selectableItemBackgroundBorderless"
             app:srcCompat="@drawable/ic_close_black"
-            android:background="@android:color/transparent"/>
+            android:tint="@color/buttonTint"/>
     </FrameLayout>
 
     <TextView

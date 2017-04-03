@@ -68,7 +68,7 @@ public final class TranslatorFragment extends Fragment implements TranslatorCont
 
         ArrayAdapter<LanguageViewModel> adapterTo =
                 new ArrayAdapter<>(getContext(), R.layout.view_language, R.id.tv_language_name);
-        adapterFrom.setDropDownViewResource(R.layout.view_language_dropdown);
+        adapterTo.setDropDownViewResource(R.layout.view_language_dropdown);
         spinnerTo.setAdapter(adapterTo);
 
         DaggerTranslatorComponent.builder()
