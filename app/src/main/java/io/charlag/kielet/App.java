@@ -2,10 +2,9 @@ package io.charlag.kielet;
 
 import android.app.Application;
 
-import io.charlag.kielet.data.source.DaggerTranslationsProviderComponent;
-import io.charlag.kielet.data.source.TranslationsProviderComponent;
 import io.charlag.kielet.data.source.TranslationsProviderModule;
 import io.charlag.kielet.data.source.net.NetModule;
+import io.charlag.kielet.data.source.storage.TranslationsStorageModule;
 
 /**
  * Created by charlag on 01/04/2017.
@@ -13,27 +12,25 @@ import io.charlag.kielet.data.source.net.NetModule;
 
 public class App extends Application {
 
-    private NetModule netModule;
-    private TranslationsProviderComponent translationsProviderComponent;
+
+    private AppComponent appComponent;
 
     @Override
     public void onCreate() {
         super.onCreate();
 
-        netModule = new NetModule("https://translate.yandex.net/api/v1.5/tr.json/",
+        NetModule netModule = new NetModule("https://translate.yandex.net/api/v1.5/tr.json/",
                 getString(R.string.api_key));
 
-        translationsProviderComponent = DaggerTranslationsProviderComponent.builder()
-                .translationsProviderModule(new TranslationsProviderModule())
+        appComponent = DaggerAppComponent.builder()
                 .netModule(netModule)
+                .appModule(new AppModule(this))
+                .translationsStorageModule(new TranslationsStorageModule())
+                .translationsProviderModule(new TranslationsProviderModule())
                 .build();
     }
 
-    public NetModule getNetModule() {
-        return netModule;
-    }
-
-    public TranslationsProviderComponent getTranslationsProviderComponent() {
-        return translationsProviderComponent;
+    public AppComponent getAppComponent() {
+        return appComponent;
     }
 }

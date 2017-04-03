@@ -5,6 +5,7 @@ import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 
+import io.charlag.kielet.history.HistoryFragment;
 import io.charlag.kielet.translator.TranslatorFragment;
 import io.charlag.kielet.util.ActivityUtils;
 
@@ -52,10 +53,10 @@ public class MainActivity extends AppCompatActivity {
             case R.id.navigation_home:
                 fragment = TranslatorFragment.newInstance();
                 break;
-            case R.id.navigation_dashboard:
-                fragment = TranslatorFragment.newInstance();
+            case R.id.navigation_history:
+                fragment = HistoryFragment.newInstance();
                 break;
-            case R.id.navigation_notifications:
+            case R.id.navigation_favorites:
                 fragment = TranslatorFragment.newInstance();
                 break;
             default:

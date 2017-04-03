@@ -70,9 +70,8 @@ public final class TranslatorFragment extends Fragment implements TranslatorCont
         spinnerTo.setAdapter(adapterTo);
 
         DaggerTranslatorComponent.builder()
+                .appComponent(((App) getActivity().getApplication()).getAppComponent())
                 .translatorPresenterModule(new TranslatorPresenterModule(this))
-                .translationsProviderComponent(((App) getActivity().getApplication())
-                        .getTranslationsProviderComponent())
                 .build()
                 .inject(this);
 
