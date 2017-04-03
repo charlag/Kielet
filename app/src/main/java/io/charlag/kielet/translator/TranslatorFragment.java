@@ -81,6 +81,9 @@ public final class TranslatorFragment extends Fragment implements TranslatorCont
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(RxTextView.text(resultField));
 
+        presenter.inputFieldText()
+                .subscribe(RxTextView.text(inputField));
+
         presenter.chosenLanguages()
                 .distinctUntilChanged()
                 .map(p -> p.first)

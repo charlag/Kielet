@@ -1,10 +1,7 @@
 package io.charlag.kielet.translator;
 
-import android.support.annotation.BoolRes;
-import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.v4.util.Pair;
-import android.util.Log;
 
 import java.util.List;
 import java.util.Locale;
@@ -12,7 +9,6 @@ import java.util.Locale;
 import io.charlag.kielet.data.Language;
 import io.charlag.kielet.data.source.TranslationsProvider;
 import io.reactivex.Observable;
-import io.reactivex.subjects.PublishSubject;
 import io.reactivex.subjects.ReplaySubject;
 
 /**
@@ -37,7 +33,9 @@ final class TranslatorPresenterImpl implements TranslatorContract.Presenter {
         languages = translationsProvider
                 .getLanguages(Locale.getDefault().getLanguage())
                 .toObservable()
-                .share().replay(1).autoConnect();
+                .share()
+                .replay(1)
+                .autoConnect();
 
         chosenLanguagesIndexes = ReplaySubject.createWithSize(1);
 
@@ -53,25 +51,32 @@ final class TranslatorPresenterImpl implements TranslatorContract.Presenter {
                         (p, indexes) -> new Pair<>(indexes.second, indexes.first))
                 .subscribe(chosenLanguagesIndexes::onNext);
 
-        chosenLanguages = chosenLanguagesIndexes
-                .withLatestFrom(languages, (indexes, langs) ->
-                        new Pair<>(langs.get(indexes.first), langs.get(indexes.second)));
+        // withLatestFrom*() won't work here because we get languages after we get indexes
+        // and getting languages doesn't trigger onNext() (when it gets main observable it simply
+        // checks that another one is ready).
+        chosenLanguages = Observable.combineLatest(chosenLanguagesIndexes, languages,
+                (indexes, langs) -> new Pair<>(langs.get(indexes.first), langs.get(indexes.second)))
+                .share()
+                .replay(1)
+                .autoConnect();
     }
 
     @NonNull
     @Override
     public Observable<TranslationViewModel> translations() {
-        Observable<TranslationViewModel> translations =
-                Observable.combineLatest(view.translationInput(), chosenLanguages, Pair::new)
-                        .filter(pair -> !pair.first.isEmpty())
-                        .flatMapSingle(pair ->
-                                translationsProvider.translate(pair.second.first.getCode(),
-                                        pair.second.second.getCode(),
-                                        pair.first))
-                        .map(translation -> new TranslationViewModel(translation.getText().get(0)));
-        Observable<TranslationViewModel> clearText = view.clearButtonPressed()
-                .map(v -> new TranslationViewModel("")); // cannot pass null through observable
-        return Observable.merge(translations, clearText);
+        return Observable.combineLatest(view.translationInput(), chosenLanguages, Pair::new)
+                .filter(pair -> !pair.first.isEmpty())
+                .flatMapSingle(pair ->
+                        translationsProvider.translate(pair.second.first.getCode(),
+                                pair.second.second.getCode(),
+                                pair.first))
+                .map(translation -> new TranslationViewModel(translation.getText().get(0)));
+    }
+
+    @NonNull
+    @Override
+    public Observable<String> inputFieldText() {
+        return view.clearButtonPressed().map(v -> "");
     }
 
     @NonNull

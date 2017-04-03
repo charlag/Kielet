@@ -18,6 +18,8 @@ interface TranslatorContract {
     interface Presenter {
         @NonNull Observable<TranslationViewModel> translations();
 
+        @NonNull Observable<String> inputFieldText();
+
         @NonNull Observable<Pair<Integer, Integer>> chosenLanguages();
 
         @NonNull Observable<List<LanguageViewModel>> languageFromList();
