@@ -8,8 +8,8 @@ import android.provider.BaseColumns;
 
 public final class TranslationEntry implements BaseColumns {
     public static final String TABLE_NAME = "translation";
-    public static final String COLUMN_NAME_FROM = "from";
-    public static final String COLUMN_NAME_TO = "to";
+    public static final String COLUMN_NAME_FROM = "from_lang";
+    public static final String COLUMN_NAME_TO = "to_lang";
     public static final String COLUMN_NAME_ORIGINAL = "original";
     public static final String COLUMN_NAME_RESULT = "result";
     public static final String COLUMN_NAME_IS_FAV = "fav";

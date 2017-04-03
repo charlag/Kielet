@@ -11,17 +11,21 @@ import java.util.List;
 import io.charlag.kielet.data.Translation;
 import io.charlag.kielet.data.source.storage.db.TranslationEntry;
 import io.charlag.kielet.data.source.storage.db.TranslationsDBHelper;
+import io.charlag.kielet.util.Empty;
+import io.reactivex.Observable;
 import io.reactivex.Single;
+import io.reactivex.subjects.ReplaySubject;
 
 /**
  * Created by charlag on 03/04/2017.
  */
 
-public class TranslationsStorageImpl implements TranslationsStorage {
+class TranslationsStorageImpl implements TranslationsStorage {
 
     private TranslationsDBHelper dbHelper;
+    private ReplaySubject<Empty> update = ReplaySubject.createWithSize(1);
 
-    public TranslationsStorageImpl(Context context) {
+    TranslationsStorageImpl(Context context) {
         this.dbHelper = new TranslationsDBHelper(context);
     }
 
@@ -37,6 +41,8 @@ public class TranslationsStorageImpl implements TranslationsStorage {
 
         db.insert(TranslationEntry.TABLE_NAME, null, values);
         db.close();
+
+        update.onNext(Empty.INSTANCE);
     }
 
     @Override
@@ -50,8 +56,24 @@ public class TranslationsStorageImpl implements TranslationsStorage {
     }
 
     @Override
-    public Single<List<Translation>> getTranslations() {
-        return Single.create(source -> {
+    public Observable<List<Translation>> getTranslations() {
+        return update.startWith(Empty.INSTANCE).flatMapSingle(v -> getNewTranslations());
+    }
+
+    private void updateTaskFavorite(long id, boolean isFavorite) {
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(TranslationEntry.COLUMN_NAME_IS_FAV, isFavorite);
+        String selection = TranslationEntry._ID + " LIKE ?";
+        String[] selectionArgs = { Long.toString(id) };
+        db.update(TranslationEntry.TABLE_NAME, values, selection, selectionArgs);
+        db.close();
+
+        update.onNext(Empty.INSTANCE);
+    }
+
+    Single<List<Translation>> getNewTranslations() {
+        return Single.fromCallable(() -> {
             String[] projection = {
                     TranslationEntry._ID,
                     TranslationEntry.COLUMN_NAME_FROM,
@@ -60,10 +82,11 @@ public class TranslationsStorageImpl implements TranslationsStorage {
                     TranslationEntry.COLUMN_NAME_RESULT,
                     TranslationEntry.COLUMN_NAME_IS_FAV
             };
+            String orderBy = TranslationEntry._ID + " DESC";
 
             SQLiteDatabase db = dbHelper.getReadableDatabase();
             Cursor c = db.query(TranslationEntry.TABLE_NAME, projection,
-                    null, null, null, null, null);
+                    null, null, null, null, orderBy);
             List<Translation> result = new ArrayList<>();
 
             if (c != null && c.getCount() > 0) {
@@ -88,17 +111,7 @@ public class TranslationsStorageImpl implements TranslationsStorage {
                 c.close();
             }
             db.close();
-            source.onSuccess(result);
+            return result;
         });
-    }
-
-    private void updateTaskFavorite(long id, boolean isFavorite) {
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(TranslationEntry.COLUMN_NAME_IS_FAV, isFavorite);
-        String selection = TranslationEntry._ID + " LIKE ?";
-        String[] selectionArgs = { Long.toString(id) };
-        db.update(TranslationEntry.TABLE_NAME, values, selection, selectionArgs);
-        db.close();
     }
 }

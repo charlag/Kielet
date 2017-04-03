@@ -21,6 +21,7 @@ import io.charlag.kielet.R;
 import io.charlag.kielet.common.TranslationItemViewModel;
 import io.charlag.kielet.common.TranslationsListAdapter;
 import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
 
 /**
  * Created by charlag on 03/04/2017.
@@ -48,10 +49,8 @@ public class HistoryFragment extends Fragment implements HistoryContract.View {
         View view = inflater.inflate(R.layout.fragment_history, container, false);
         ButterKnife.bind(this, view);
         historyList.setLayoutManager(new LinearLayoutManager(getContext()));
-        List<TranslationItemViewModel> vms = new ArrayList<>();
-        vms.add(new TranslationItemViewModel(false, "Hey", "HOo", "en", "kd"));
-        vms.add(new TranslationItemViewModel(true, "Hey", "HOo", "pc", "sl"));
-        adapter = new TranslationsListAdapter(vms);
+        List<TranslationItemViewModel> translations = new ArrayList<>();
+        adapter = new TranslationsListAdapter(translations);
         historyList.setAdapter(adapter);
 
         DaggerHistoryComponent.builder()
@@ -60,6 +59,14 @@ public class HistoryFragment extends Fragment implements HistoryContract.View {
                 .build()
                 .inject(this);
 
+        presenter.translations()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(trs -> {
+                    translations.clear();
+                    translations.addAll(trs);
+                    adapter.notifyDataSetChanged();
+                });
+
         return view;
     }
 
@@ -67,5 +74,11 @@ public class HistoryFragment extends Fragment implements HistoryContract.View {
     public Observable<Integer> favoriteSelected() {
         // potential memory problem
         return Observable.create(subscriber -> adapter.setFavPressedListener(subscriber::onNext));
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        presenter.unsubscribe();
     }
 }

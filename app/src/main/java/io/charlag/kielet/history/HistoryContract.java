@@ -2,6 +2,7 @@ package io.charlag.kielet.history;
 
 import java.util.List;
 
+import io.charlag.kielet.common.BasePresenter;
 import io.charlag.kielet.common.TranslationItemViewModel;
 import io.reactivex.Observable;
 
@@ -10,7 +11,7 @@ import io.reactivex.Observable;
  */
 
 public final class HistoryContract {
-    public interface Presenter {
+    public interface Presenter extends BasePresenter {
         Observable<List<TranslationItemViewModel>> translations();
     }
     public interface View {

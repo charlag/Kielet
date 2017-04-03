@@ -16,6 +16,8 @@ import android.widget.TextView;
 import com.jakewharton.rxbinding2.view.RxView;
 import com.jakewharton.rxbinding2.widget.RxTextView;
 
+import java.util.concurrent.TimeUnit;
+
 import javax.inject.Inject;
 
 import butterknife.BindView;
@@ -122,7 +124,9 @@ public final class TranslatorFragment extends Fragment implements TranslatorCont
     @NonNull
     @Override
     public Observable<String> translationInput() {
-        return RxTextView.textChangeEvents(inputField).map(event -> event.text().toString());
+        return RxTextView.textChangeEvents(inputField)
+                .throttleLast(500, TimeUnit.MILLISECONDS, AndroidSchedulers.mainThread())
+                .map(event -> event.text().toString());
     }
 
     @NonNull
@@ -140,14 +144,18 @@ public final class TranslatorFragment extends Fragment implements TranslatorCont
     @NonNull
     @Override
     public Observable<Integer> languageFromPicked() {
-        // TODO: unsubscribe
         return new TouchSelectedEventsObservable(spinnerFrom);
     }
 
     @NonNull
     @Override
     public Observable<Integer> languageToPicked() {
-        // TODO: unsubscribe
         return new TouchSelectedEventsObservable(spinnerTo);
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        presenter.unsubscribe();
     }
 }
