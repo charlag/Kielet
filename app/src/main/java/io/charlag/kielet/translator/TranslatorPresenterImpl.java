@@ -46,6 +46,7 @@ final class TranslatorPresenterImpl implements TranslatorContract.Presenter {
 
         languages = translationsProvider
                 .getLanguages(Locale.getDefault().getLanguage())
+                .retry(3)
                 .toObservable()
                 .share()
                 .replay(1)
@@ -56,7 +57,7 @@ final class TranslatorPresenterImpl implements TranslatorContract.Presenter {
         // TODO: add "detect language" option
         disposable.add(Observable
                 .combineLatest(view.languageFromPicked().startWith(0),
-                        view.languageToPicked().startWith(1),
+                        view.languageToPicked().startWith(0),
                         Pair::new)
                 .subscribe(chosenLanguagesIndexes::onNext)
         );
@@ -86,10 +87,13 @@ final class TranslatorPresenterImpl implements TranslatorContract.Presenter {
     public Observable<TranslationViewModel> translations() {
         return Observable.combineLatest(view.translationInput(), chosenLanguages, Pair::new)
                 .filter(pair -> !pair.first.isEmpty())
-                .flatMapSingle(pair -> translationsProvider.translate(pair.second.first.getCode(),
+                .switchMap(pair -> translationsProvider.translate(pair.second.first.getCode(),
                         pair.second.second.getCode(),
                         pair.first)
-                        .doOnSuccess(tr -> addToStorage.onNext(new Pair<>(tr, pair.first))))
+                        .doOnSuccess(tr -> addToStorage.onNext(new Pair<>(tr, pair.first)))
+                        .toObservable()
+                        .onErrorResumeNext(Observable.empty())
+                )
                 .map(translation -> new TranslationViewModel(translation.getText().get(0)));
     }
 
