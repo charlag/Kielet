@@ -1,34 +1,23 @@
 package io.charlag.kielet;
 
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
-import android.view.MenuItem;
-import android.widget.FrameLayout;
-import android.widget.TextView;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
 import io.charlag.kielet.translator.TranslatorFragment;
+import io.charlag.kielet.util.ActivityUtils;
 
 public class MainActivity extends AppCompatActivity {
+
+    private static final String CHOSEN_ID = "CHOSEN_ID";
+
+    private int chosenId;
+
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
             = item -> {
-        switch (item.getItemId()) {
-            case R.id.navigation_home:
-                Fragment fragment = TranslatorFragment.newInstance();
-                getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.content, fragment)
-                        .commit();
-                return true;
-            case R.id.navigation_dashboard:
-                return true;
-            case R.id.navigation_notifications:
-                return true;
-        }
-        return false;
+        setFragment(item.getItemId());
+        return true;
     };
 
     @Override
@@ -39,9 +28,39 @@ public class MainActivity extends AppCompatActivity {
         BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
 
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.content, TranslatorFragment.newInstance())
-                .commit();
+        if (savedInstanceState == null) {
+            setFragment(R.id.navigation_home);
+        } else {
+            chosenId = savedInstanceState.getInt(CHOSEN_ID);
+        }
     }
 
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(CHOSEN_ID, chosenId);
+    }
+
+    void setFragment(int id) {
+        if (id == chosenId) {
+            return;
+        }
+        chosenId = id;
+        Fragment fragment;
+        // TODO: replace with actual fragments
+        switch (chosenId) {
+            case R.id.navigation_home:
+                fragment = TranslatorFragment.newInstance();
+                break;
+            case R.id.navigation_dashboard:
+                fragment = TranslatorFragment.newInstance();
+                break;
+            case R.id.navigation_notifications:
+                fragment = TranslatorFragment.newInstance();
+                break;
+            default:
+                fragment = TranslatorFragment.newInstance();
+        }
+        ActivityUtils.replaceFragment(getSupportFragmentManager(), fragment, R.id.content);
+    }
 }
